@@ -26,6 +26,10 @@ var (
 	ErrConvertToMapString = errors.New("can not convert to map of strings")
 )
 
+type IBind interface {
+	Bind(val string, value reflect.Value) error
+}
+
 func mapURI(ptr any, m map[string][]string) error {
 	return mapFormByTag(ptr, m, "uri")
 }
@@ -236,6 +240,11 @@ func setWithProperType(val string, value reflect.Value, field reflect.StructFiel
 		case time.Time:
 			return setTimeField(val, field, value)
 		}
+
+		if value.Type().Implements(reflect.TypeOf((*IBind)(nil)).Elem()) {
+			return value.Interface().(IBind).Bind(val, value)
+		}
+
 		return json.Unmarshal(bytesconv.StringToBytes(val), value.Addr().Interface())
 	case reflect.Map:
 		return json.Unmarshal(bytesconv.StringToBytes(val), value.Addr().Interface())
