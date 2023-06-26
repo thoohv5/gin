@@ -9,6 +9,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"reflect"
+	"strconv"
 
 	"github.com/gin-gonic/gin/internal/json"
 )
@@ -49,8 +51,48 @@ func decodeJSON(r io.Reader, obj any) error {
 	if EnableDecoderDisallowUnknownFields {
 		decoder.DisallowUnknownFields()
 	}
+	// 附加默认值
+	if err := setDefaultValue(obj); err != nil {
+		return err
+	}
 	if err := decoder.Decode(obj); err != nil {
 		return err
 	}
 	return validate(obj)
+}
+
+const (
+	defaultTagName = "default"
+)
+
+func setDefaultValue(x interface{}) error {
+	rt := reflect.TypeOf(x)
+	rv := reflect.ValueOf(x)
+	for i := 0; i < rt.Elem().NumField(); i++ {
+		rtf := rt.Elem().Field(i)
+		rvf := rv.Elem().Field(i)
+		switch rtf.Type.Kind() {
+		case reflect.Struct:
+			if err := setDefaultValue(rvf.Addr().Interface()); err != nil {
+				return err
+			}
+		case reflect.Ptr:
+
+		}
+		if v, ok := rtf.Tag.Lookup(defaultTagName); ok {
+			switch rtf.Type.Kind() {
+			case reflect.Int32:
+				result, err := strconv.ParseInt(v, 10, 32)
+				if err != nil {
+					return err
+				}
+				rv.Elem().Field(i).SetInt(result)
+			case reflect.String:
+				rv.Elem().Field(i).SetString(v)
+			default:
+
+			}
+		}
+	}
+	return nil
 }
