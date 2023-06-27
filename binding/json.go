@@ -71,13 +71,10 @@ func setDefaultValue(x interface{}) error {
 	for i := 0; i < rt.Elem().NumField(); i++ {
 		rtf := rt.Elem().Field(i)
 		rvf := rv.Elem().Field(i)
-		switch rtf.Type.Kind() {
-		case reflect.Struct:
+		if rtf.Anonymous && rtf.Type.Kind() == reflect.Struct {
 			if err := setDefaultValue(rvf.Addr().Interface()); err != nil {
 				return err
 			}
-		case reflect.Ptr:
-
 		}
 		if v, ok := rtf.Tag.Lookup(defaultTagName); ok {
 			switch rtf.Type.Kind() {
