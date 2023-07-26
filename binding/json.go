@@ -36,7 +36,16 @@ func (jsonBinding) Bind(req *http.Request, obj any) error {
 	if req == nil || req.Body == nil {
 		return errors.New("invalid request")
 	}
-	return decodeJSON(req.Body, obj)
+	if err := decodeJSON(req.Body, obj); err != nil {
+		return err
+	}
+	values := req.URL.Query()
+	if len(values.Encode()) > 0 {
+		if err := mapForm(obj, values); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (jsonBinding) BindBody(body []byte, obj any) error {
