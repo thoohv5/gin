@@ -60,7 +60,7 @@ type RouteInfo struct {
 	Method      string
 	Path        string
 	Handler     string
-	handlers    HandlersChain
+	Handlers    HandlersChain
 	HandlerFunc HandlerFunc
 }
 
@@ -359,7 +359,7 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 			Method:      method,
 			Path:        path,
 			Handler:     nameOfFunction(handlerFunc),
-			handlers:    root.handlers,
+			Handlers:    root.handlers,
 			HandlerFunc: handlerFunc,
 		})
 	}
