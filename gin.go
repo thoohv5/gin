@@ -14,10 +14,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/gin-gonic/gin/internal/bytesconv"
-	"github.com/gin-gonic/gin/render"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+
+	"github.com/gin-gonic/gin/internal/bytesconv"
+	"github.com/gin-gonic/gin/render"
 )
 
 const defaultMultipartMemory = 32 << 20 // 32 MB
@@ -59,6 +60,7 @@ type RouteInfo struct {
 	Method      string
 	Path        string
 	Handler     string
+	handlers    HandlersChain
 	HandlerFunc HandlerFunc
 }
 
@@ -357,6 +359,7 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 			Method:      method,
 			Path:        path,
 			Handler:     nameOfFunction(handlerFunc),
+			handlers:    root.handlers,
 			HandlerFunc: handlerFunc,
 		})
 	}
