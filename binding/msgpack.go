@@ -20,7 +20,7 @@ func (msgpackBinding) Name() string {
 	return "msgpack"
 }
 
-func (msgpackBinding) Bind(req *http.Request, obj any) error {
+func (msgpackBinding) Bind(req *http.Request, obj any, opts ...Option) error {
 	return decodeMsgPack(req.Body, obj)
 }
 

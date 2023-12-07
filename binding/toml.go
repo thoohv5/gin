@@ -17,8 +17,7 @@ type tomlBinding struct{}
 func (tomlBinding) Name() string {
 	return "toml"
 }
-
-func (tomlBinding) Bind(req *http.Request, obj any) error {
+func (tomlBinding) Bind(req *http.Request, obj any, opts ...Option) error {
 	return decodeToml(req.Body, obj)
 }
 
