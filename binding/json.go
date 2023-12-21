@@ -77,6 +77,9 @@ const (
 func setDefaultValue(x interface{}) error {
 	rt := reflect.TypeOf(x)
 	rv := reflect.ValueOf(x)
+	if rt.Kind() != reflect.Struct {
+		return nil
+	}
 	for i := 0; i < rt.Elem().NumField(); i++ {
 		rtf := rt.Elem().Field(i)
 		rvf := rv.Elem().Field(i)
