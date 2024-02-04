@@ -60,11 +60,11 @@ func decodeJSON(r io.Reader, obj any) error {
 	if EnableDecoderDisallowUnknownFields {
 		decoder.DisallowUnknownFields()
 	}
-	// 附加默认值
-	if err := setDefaultValue(obj); err != nil {
+	if err := decoder.Decode(obj); err != nil {
 		return err
 	}
-	if err := decoder.Decode(obj); err != nil {
+	// 附加默认值
+	if err := setDefaultValue(obj); err != nil {
 		return err
 	}
 	return validate(obj)
@@ -77,27 +77,30 @@ const (
 func setDefaultValue(x interface{}) error {
 	rt := reflect.TypeOf(x)
 	rv := reflect.ValueOf(x)
+
+	if rt.Kind() == reflect.Ptr {
+		rt, rv = rt.Elem(), rv.Elem()
+	}
 	if rt.Kind() != reflect.Struct {
 		return nil
 	}
-	for i := 0; i < rt.Elem().NumField(); i++ {
-		rtf := rt.Elem().Field(i)
-		rvf := rv.Elem().Field(i)
+	for i := 0; i < rt.NumField(); i++ {
+		rtf, rvf := rt.Field(i), rv.Field(i)
 		if rtf.Anonymous && rtf.Type.Kind() == reflect.Struct {
 			if err := setDefaultValue(rvf.Addr().Interface()); err != nil {
 				return err
 			}
 		}
-		if v, ok := rtf.Tag.Lookup(defaultTagName); ok {
+		if v, ok := rtf.Tag.Lookup(defaultTagName); ok && rvf.CanSet() && rvf.IsZero() {
 			switch rtf.Type.Kind() {
 			case reflect.Int32:
 				result, err := strconv.ParseInt(v, 10, 32)
 				if err != nil {
 					return err
 				}
-				rv.Elem().Field(i).SetInt(result)
+				rvf.SetInt(result)
 			case reflect.String:
-				rv.Elem().Field(i).SetString(v)
+				rvf.SetString(v)
 			default:
 
 			}
